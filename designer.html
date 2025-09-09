@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Contribution Graph Art Designer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #58a6ff;
+        }
+        
+        .grid-container {
+            overflow-x: auto;
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #161b22;
+            border-radius: 8px;
+        }
+        
+        .grid {
+            display: inline-block;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 16px;
+            background-color: #0d1117;
+        }
+        
+        .week-labels {
+            display: grid;
+            grid-template-columns: repeat(52, 12px);
+            gap: 2px;
+            margin-bottom: 8px;
+            margin-left: 20px;
+        }
+        
+        .week-label {
+            font-size: 10px;
+            text-align: center;
+            color: #7d8590;
+            cursor: pointer;
+            padding: 2px;
+            border-radius: 2px;
+        }
+        
+        .week-label:hover {
+            background-color: #21262d;
+        }
+        
+        .grid-content {
+            display: flex;
+            gap: 2px;
+        }
+        
+        .day-labels {
+            display: grid;
+            grid-template-rows: repeat(7, 12px);
+            gap: 2px;
+            margin-right: 8px;
+            margin-top: 0;
+        }
+        
+        .day-label {
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            color: #7d8590;
+            width: 15px;
+        }
+        
+        .grid-cells {
+            display: grid;
+            grid-template-columns: repeat(52, 12px);
+            grid-template-rows: repeat(7, 12px);
+            gap: 2px;
+        }
+        
+        .cell {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            cursor: pointer;
+            border: 1px solid #1c2128;
+        }
+        
+        .cell:hover {
+            border-color: #58a6ff;
+        }
+        
+        /* GitHub contribution colors */
+        .level-0 { background-color: #161b22; }
+        .level-1 { background-color: #0e4429; }
+        .level-2 { background-color: #006d32; }
+        .level-3 { background-color: #26a641; }
+        .level-4 { background-color: #39d353; }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .color-picker {
+            display: inline-flex;
+            gap: 10px;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #161b22;
+            border-radius: 6px;
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .color-option.selected {
+            border-color: #58a6ff;
+        }
+        
+        .buttons {
+            margin: 20px 0;
+        }
+        
+        button {
+            background-color: #238636;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #2ea043;
+        }
+        
+        .clear-btn {
+            background-color: #da3633;
+        }
+        
+        .clear-btn:hover {
+            background-color: #f85149;
+        }
+        
+        .output {
+            margin: 20px 0;
+            padding: 20px;
+            background-color: #161b22;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .instructions {
+            background-color: #161b22;
+            padding: 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 GitHub Contribution Graph Art Designer</h1>
+        
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ul>
+                <li>Click on the week labels (top row) to fill entire columns</li>
+                <li>Click on individual cells to paint them</li>
+                <li>Select different intensity levels using the color picker below</li>
+                <li>Export your design to get the JavaScript array</li>
+            </ul>
+        </div>
+        
+        <div class="controls">
+            <div class="color-picker">
+                <div class="color-option level-0" data-level="0" title="No commits"></div>
+                <div class="color-option level-1 selected" data-level="1" title="1-3 commits"></div>
+                <div class="color-option level-2" data-level="2" title="4-6 commits"></div>
+                <div class="color-option level-3" data-level="3" title="7-9 commits"></div>
+                <div class="color-option level-4" data-level="4" title="10+ commits"></div>
+            </div>
+        </div>
+        
+        <div class="grid-container">
+            <div class="grid">
+                <div class="week-labels" id="weekLabels"></div>
+                <div class="grid-content">
+                    <div class="day-labels">
+                        <div class="day-label">Sun</div>
+                        <div class="day-label">Mon</div>
+                        <div class="day-label">Tue</div>
+                        <div class="day-label">Wed</div>
+                        <div class="day-label">Thu</div>
+                        <div class="day-label">Fri</div>
+                        <div class="day-label">Sat</div>
+                    </div>
+                    <div class="grid-cells" id="gridCells"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="buttons">
+            <button onclick="exportPattern()">📤 Export Pattern</button>
+            <button onclick="clearGrid()" class="clear-btn">🗑️ Clear All</button>
+            <button onclick="fillRandom()">🎲 Random Fill</button>
+        </div>
+        
+        <div class="output" id="output" style="display: none;"></div>
+    </div>
+
+    <script>
+        let currentLevel = 1;
+        let grid = Array(7).fill().map(() => Array(52).fill(0));
+        
+        // Initialize the grid
+        function initGrid() {
+            const weekLabels = document.getElementById('weekLabels');
+            const gridCells = document.getElementById('gridCells');
+            
+            // Create week labels (clickable columns)
+            for (let week = 0; week < 52; week++) {
+                const label = document.createElement('div');
+                label.className = 'week-label';
+                label.textContent = week + 1;
+                label.onclick = () => fillColumn(week);
+                weekLabels.appendChild(label);
+            }
+            
+            // Create grid cells
+            for (let row = 0; row < 7; row++) {
+                for (let col = 0; col < 52; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell level-0';
+                    cell.dataset.row = row;
+                    cell.dataset.col = col;
+                    cell.onclick = () => paintCell(row, col);
+                    gridCells.appendChild(cell);
+                }
+            }
+            
+            // Initialize color picker
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.onclick = () => selectLevel(parseInt(option.dataset.level));
+            });
+        }
+        
+        function selectLevel(level) {
+            currentLevel = level;
+            document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector(`[data-level="${level}"]`).classList.add('selected');
+        }
+        
+        function paintCell(row, col) {
+            grid[row][col] = currentLevel;
+            updateCellDisplay(row, col);
+        }
+        
+        function fillColumn(col) {
+            for (let row = 0; row < 7; row++) {
+                grid[row][col] = currentLevel;
+                updateCellDisplay(row, col);
+            }
+        }
+        
+        function updateCellDisplay(row, col) {
+            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+            cell.className = `cell level-${grid[row][col]}`;
+        }
+        
+        function clearGrid() {
+            grid = Array(7).fill().map(() => Array(52).fill(0));
+            document.querySelectorAll('.cell').forEach(cell => {
+                cell.className = 'cell level-0';
+            });
+            document.getElementById('output').style.display = 'none';
+        }
+        
+        function fillRandom() {
+            for (let row = 0; row < 7; row++) {
+                for (let col = 0; col < 52; col++) {
+                    grid[row][col] = Math.floor(Math.random() * 5);
+                    updateCellDisplay(row, col);
+                }
+            }
+        }
+        
+        function exportPattern() {
+            const output = document.getElementById('output');
+            
+            let jsCode = `// GitHub Contribution Graph Pattern (7 rows x 52 columns)
+// 0 = no commits, 1-4 = increasing commit intensity
+const PATTERN = [
+`;
+            
+            for (let row = 0; row < 7; row++) {
+                jsCode += '  [' + grid[row].join(',') + ']';
+                if (row < 6) jsCode += ',';
+                jsCode += '\n';
+            }
+            
+            jsCode += '];';
+            
+            // Also provide usage example
+            jsCode += `
+
+// Usage in your commit script:
+// Replace the PATTERN array in your index.js with the above array
+// Each number represents the commit intensity for that day
+// 0 = no commits, 1-4 = 1-4+ commits per day`;
+
+            output.textContent = jsCode;
+            output.style.display = 'block';
+            
+            // Scroll to output
+            output.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initGrid);
+    </script>
+</body>
+</html>

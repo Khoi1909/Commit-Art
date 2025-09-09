@@ -1,0 +1,15 @@
+{
+  "name": "commit-manipulator",
+  "version": "1.0.0",
+  "description": "Generate commits on specific dates to manipulate the GitHub contribution graph.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+  "simple-git": "^3.19.1",
+    "date-fns": "^3.0.0"
+  }
+}
